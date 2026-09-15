@@ -1,0 +1,130 @@
+{% extends "staff/base.html" %}
+
+{% block title %}Circulars - Staff Portal{% endblock %}
+{% block header_title %}Official Circulars{% endblock %}
+
+{% block extra_css %}
+<style>
+    .circular-header {
+        background-color: #ffffff;
+        border-radius: 1rem;
+        box-shadow: 0 1px 3px rgba(16, 24, 40, 0.08);
+        border: 1px solid #eaecf0;
+    }
+    .circular-card {
+        border-radius: 0.75rem;
+        border: 1px solid #eaecf0;
+        background-color: #ffffff;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+    }
+    .circular-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(16, 24, 40, 0.08);
+        border-color: #b9ddff;
+    }
+    .doc-icon-wrapper {
+        width: 48px;
+        height: 48px;
+        border-radius: 0.5rem;
+        background-color: #eff6ff;
+        color: #2563eb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header Card -->
+<div class="card circular-header p-4 mb-4 border-0">
+    <div class="row align-items-center g-3">
+        <div class="col-12 col-md-8 d-flex align-items-center gap-3">
+            <div class="doc-icon-wrapper flex-shrink-0">
+                <i class="fa-solid fa-bullhorn fs-4"></i>
+            </div>
+            <div>
+                <nav aria-label="breadcrumb" class="mb-1">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="{{ url_for('staff_portal_dashboard') }}">Dashboard</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Circulars</li>
+                    </ol>
+                </nav>
+                <h4 class="fw-bold text-dark mb-0">Official Circulars</h4>
+                <p class="text-muted small mb-0">Read and acknowledge official school announcements and notices</p>
+            </div>
+        </div>
+        <div class="col-12 col-md-4 text-md-end">
+            <span class="badge bg-blue-light text-blue-primary px-3 py-2 rounded-pill fw-semibold">
+                <i class="fa-solid fa-clipboard-check me-1"></i> Acknowledging Required
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Circulars List Grid -->
+<div class="row g-4">
+    {% if circulars %}
+        {% for circular in circulars %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card circular-card h-100 p-4 d-flex flex-column justify-content-between">
+                    <div>
+                        <!-- Header -->
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-1.5 fw-semibold small">
+                                <i class="fa-solid fa-users-rectangle me-1"></i> {{ circular.target_audience }}
+                            </span>
+                            <span class="text-muted small" style="font-size: 0.75rem;">
+                                <i class="fa-regular fa-clock me-1"></i> {{ circular.created_at.strftime('%d %b %Y') }}
+                            </span>
+                        </div>
+                        
+                        <!-- Title & Description -->
+                        <h5 class="fw-bold text-dark mb-2">{{ circular.title }}</h5>
+                        <p class="text-muted small mb-4" style="line-height:1.6; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; height: 75px;">
+                            {{ circular.description or 'No description provided.' }}
+                        </p>
+                    </div>
+                    
+                    <!-- Footer Actions -->
+                    <div class="border-top pt-3 mt-auto d-flex justify-content-between align-items-center">
+                        {% if circular.attachment_path %}
+                            <a href="{{ url_for('static', filename=circular.attachment_path) }}" class="btn btn-sm btn-light border d-inline-flex align-items-center gap-1.5 rounded-3 fw-semibold text-dark small" target="_blank">
+                                <i class="fa-solid fa-paperclip text-muted"></i> View File
+                            </a>
+                        {% else %}
+                            <span class="text-muted small"><i class="fa-solid fa-info-circle me-1"></i> No attachment</span>
+                        {% endif %}
+
+                        <div>
+                            {% if circular.id in acknowledged_ids %}
+                                <span class="badge bg-success-light text-success px-3 py-2 rounded-3 fw-semibold small">
+                                    <i class="fa-solid fa-circle-check me-1"></i> Acknowledged
+                                </span>
+                            {% else %}
+                                <form method="POST" action="{{ url_for('acknowledge_circular', circular_id=circular.id) }}">
+                                    <button type="submit" class="btn btn-sm btn-primary px-3 py-1.5 rounded-3 fw-semibold d-flex align-items-center gap-1">
+                                        <i class="fa-solid fa-check"></i> Acknowledge
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <!-- Empty State -->
+        <div class="col-12">
+            <div class="card border-0 rounded-4 shadow-sm text-center p-5 bg-white">
+                <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mb-4" style="width: 80px; height: 80px;">
+                    <i class="fa-solid fa-envelope-open text-muted fs-2"></i>
+                </div>
+                <h5 class="fw-bold text-dark">No Active Circulars</h5>
+                <p class="text-muted small">You don't have any pending official circulars to read at the moment.</p>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends "staff/base.html" %}
+
+{% block title %}Staff Login - Secure Portal{% endblock %}
+
+{% block login_content %}
+<div class="login-container">
+    <div class="card login-card border-0 shadow-lg">
+        <!-- Top accent bar -->
+        <div class="accent-bar bg-success"></div>
+        
+        <div class="card-body p-5">
+            <!-- Brand Logo / Icon -->
+            <div class="text-center mb-4">
+                <div class="icon-wrapper bg-success bg-opacity-10 mx-auto mb-3 text-success">
+                    <i class="fa-solid fa-chalkboard-user fs-3"></i>
+                </div>
+                <h3 class="fw-bold text-dark mb-1">Staff Portal</h3>
+                <p class="text-muted small">Log in to manage your classes and exams</p>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" method="POST" action="{{ url_for('staff_portal_login') }}" class="needs-validation" novalidate>
+                <!-- Username Field -->
+                <div class="mb-4">
+                    <label for="username" class="form-label fw-semibold text-muted small">Username</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0 text-muted">
+                            <i class="fa-regular fa-user"></i>
+                        </span>
+                        <input type="text" 
+                               class="form-control border-start-0 ps-0" 
+                               id="username" 
+                               name="username" 
+                               placeholder="Enter your username" 
+                               required
+                               autocomplete="username">
+                    </div>
+                </div>
+
+                <!-- Password Field -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label for="password" class="form-label fw-semibold text-muted small mb-0">Password</label>
+                    </div>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0 text-muted">
+                            <i class="fa-solid fa-lock"></i>
+                        </span>
+                        <input type="password" 
+                               class="form-control border-start-0 border-end-0 ps-0" 
+                               id="password" 
+                               name="password" 
+                               placeholder="Enter your password" 
+                               required
+                               autocomplete="current-password">
+                        <span class="input-group-text bg-white border-start-0 text-muted cursor-pointerToggle" id="togglePassword">
+                            <i class="fa-regular fa-eye-slash" id="toggleIcon"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn btn-success w-100 py-2.5 fw-semibold d-flex justify-content-center align-items-center" id="submitBtn">
+                    <span>Log In</span>
+                    <i class="fa-solid fa-arrow-right-to-bracket ms-2"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

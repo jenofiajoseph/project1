@@ -1,0 +1,41 @@
+{% extends "student/base.html" %}
+
+{% block title %}Exam Results - {{ exam.title }}{% endblock %}
+{% block header_title %}Exam Results{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden position-relative">
+            <!-- Decorative Header -->
+            <div class="bg-primary pt-5 pb-4 px-4 text-center position-relative" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);">
+                <div class="d-inline-flex align-items-center justify-content-center bg-white rounded-circle shadow mb-3" style="width: 80px; height: 80px;">
+                    <i class="fa-solid fa-trophy fa-3x" style="color: #f59e0b;"></i>
+                </div>
+                <h3 class="fw-bold text-white mb-1">Exam Completed!</h3>
+                <p class="text-white opacity-75 mb-0">{{ exam.title }}</p>
+            </div>
+            
+            <div class="card-body p-5 text-center">
+                
+                <h6 class="text-uppercase text-muted fw-bold mb-3" style="letter-spacing: 1px;">Your Final Score</h6>
+                
+                {% set total = exam.questions|length %}
+                {% set percentage = (attempt.score / total * 100) if total > 0 else 0 %}
+                
+                <div class="display-1 fw-extrabold mb-2 {% if percentage >= 80 %}text-success{% elif percentage >= 50 %}text-warning{% else %}text-danger{% endif %}">
+                    {{ attempt.score }} <span class="fs-3 text-muted">/ {{ total }}</span>
+                </div>
+                
+                <p class="text-muted mb-5">
+                    Completed on {{ attempt.completed_at.strftime('%B %d, %Y at %I:%M %p') }}
+                </p>
+                
+                <a href="{{ url_for('student_dashboard') }}" class="btn btn-primary btn-lg fw-semibold px-5 rounded-pill shadow-sm" style="background-color: #8b5cf6; border-color: #8b5cf6;">
+                    Return to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

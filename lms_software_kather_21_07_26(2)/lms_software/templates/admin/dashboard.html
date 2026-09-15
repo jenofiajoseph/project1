@@ -1,0 +1,27 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Dashboard - School LMS{% endblock %}
+
+{% block header_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm p-5 text-center bg-white rounded-4">
+            <div class="mb-4 text-blue-primary">
+                <i class="fa-solid fa-circle-user fa-5x"></i>
+            </div>
+            <h1 class="fw-bold text-dark mb-2">Welcome, {{ admin_username }}!</h1>
+            <p class="text-muted fs-5 mb-4">You have successfully logged in as the School Administrator.</p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="{{ url_for('academic_years') }}" class="btn btn-blue-primary px-4 py-2 fw-semibold">
+                    <i class="fa-regular fa-calendar-days me-2"></i> Manage Academic Years
+                </a>
+                <a href="{{ url_for('register_staff') }}" class="btn btn-outline-blue px-4 py-2 fw-semibold">
+                    <i class="fa-solid fa-user-plus me-2"></i> Register Staff Member
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

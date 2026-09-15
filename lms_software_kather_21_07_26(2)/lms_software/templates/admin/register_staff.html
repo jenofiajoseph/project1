@@ -1,0 +1,641 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Register Staff Member - School LMS{% endblock %}
+
+{% block header_title %}Register Staff Member{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <form method="POST" action="{{ url_for('register_staff') }}" class="needs-validation" enctype="multipart/form-data" novalidate>
+            <!-- 1. Personal Information Card -->
+            <div class="card border-0 shadow-sm rounded-4 bg-white mb-4">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h6 class="fw-bold text-blue-primary mb-0">
+                        <i class="fa-solid fa-address-card me-2"></i>1. Personal Information
+                    </h6>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <!-- First Name -->
+                        <div class="col-md-4">
+                            <label for="first_name" class="form-label fw-semibold text-muted small">First Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" required>
+                            <div class="invalid-feedback">First name is required.</div>
+                        </div>
+                        
+                        <!-- Last Name -->
+                        <div class="col-md-4">
+                            <label for="last_name" class="form-label fw-semibold text-muted small">Last Name</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name">
+                        </div>
+
+                        <!-- Profile Photo -->
+                        <div class="col-md-4">
+                            <label for="photo" class="form-label fw-semibold text-muted small">Profile Photo (Optional)</label>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="flex-grow-1">
+                                    <input type="file" class="form-control" id="photo" name="photo" accept="image/*" onchange="previewImage(this, 'photo_preview')">
+                                </div>
+                                <img id="photo_preview" src="" alt="Preview" class="rounded d-none shadow-sm" style="width: 38px; height: 38px; object-fit: cover; border: 1px solid #ddd; cursor: pointer;" onclick="openImageModal(this.src)">
+                            </div>
+                            <div class="form-text small mt-1">Accepted formats: JPG, PNG, GIF.</div>
+                        </div>
+                        
+                        <!-- Gender -->
+                        <div class="col-md-4">
+                            <label for="gender" class="form-label fw-semibold text-muted small">Gender <span class="text-danger">*</span></label>
+                            <select class="form-select" id="gender" name="gender" required>
+                                <option value="" selected disabled>Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            <div class="invalid-feedback">Please select a gender.</div>
+                        </div>
+                        
+                        <!-- Date of Birth -->
+                        <div class="col-md-4">
+                            <label for="date_of_birth" class="form-label fw-semibold text-muted small">Date of Birth <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" required>
+                            <div class="invalid-feedback">Staff member must be at least 18 years old.</div>
+                        </div>
+                        
+                        <!-- Mobile -->
+                        <div class="col-md-4">
+                            <label for="mobile" class="form-label fw-semibold text-muted small">Mobile Number <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" id="mobile" name="mobile" required pattern="[0-9]{10}" maxlength="10" placeholder="e.g. 9876543210">
+                            <div class="invalid-feedback">Mobile number must be exactly 10 digits.</div>
+                        </div>
+                        
+                        <!-- Email -->
+                        <div class="col-md-4">
+                            <label for="email" class="form-label fw-semibold text-muted small">Email Address <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                            <div class="invalid-feedback">Please enter a valid email address.</div>
+                        </div>
+                        
+                        <!-- Address -->
+                        <div class="col-12">
+                            <label for="address" class="form-label fw-semibold text-muted small">Residential Address <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="address" name="address" rows="3" required></textarea>
+                            <div class="invalid-feedback">Please enter address details.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 2. Professional & Academic Qualifications -->
+            <div class="card border-0 shadow-sm rounded-4 bg-white mb-4">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h6 class="fw-bold text-blue-primary mb-0">
+                        <i class="fa-solid fa-briefcase me-2"></i>2. Professional Information
+                    </h6>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <!-- Employee ID -->
+                        <div class="col-md-4">
+                            <label for="employee_id" class="form-label fw-semibold text-muted small">Employee ID / Code <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="employee_id" name="employee_id" placeholder="e.g. EMP1004" required>
+                            <div class="invalid-feedback">Employee ID is required.</div>
+                        </div>
+                        
+                        <!-- Designation -->
+                        <div class="col-md-4">
+                            <label for="designation" class="form-label fw-semibold text-muted small">Designation <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="designation" name="designation" placeholder="e.g. Senior Lecturer" required>
+                            <div class="invalid-feedback">Please enter designation.</div>
+                        </div>
+                        
+                        <!-- Teacher Category -->
+                        <div class="col-md-4">
+                            <label for="teacher_category" class="form-label fw-semibold text-muted small">Teacher Category <span class="text-danger">*</span></label>
+                            <select class="form-select" id="teacher_category" name="teacher_category" required>
+                                <option value="" selected disabled>Select Category</option>
+                                {% for cat in categories %}
+                                    <option value="{{ cat.name }}">{{ cat.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="invalid-feedback">Please select a category.</div>
+                        </div>
+
+                        <!-- Department FK -->
+                        <div class="col-md-4">
+                            <label for="department_id" class="form-label fw-semibold text-muted small">Department <span class="text-danger">*</span></label>
+                            <select class="form-select" id="department_id" name="department_id" required>
+                                <option value="" selected disabled>Select Department</option>
+                                {% for dept in departments %}
+                                    <option value="{{ dept.id }}">{{ dept.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="invalid-feedback">Please select a department.</div>
+                        </div>
+                        
+
+
+                        
+                        <!-- Experience Level -->
+                        <div class="col-md-4">
+                            <label for="experience_level" class="form-label fw-semibold text-muted small">Experience Level</label>
+                            <select class="form-select" id="experience_level" name="experience_level" onchange="toggleExperienceDetails()">
+                                <option value="Fresher" selected>Fresher</option>
+                                <option value="Experienced">Experienced</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Dynamic Experience Details Section -->
+                    <div id="experience_details_section" class="mt-1" style="display: none;">
+                        <div class="col-12"><hr class="text-muted opacity-25 my-2"></div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold text-dark small mb-0">Experience Details</h6>
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addExperienceRow()">
+                                <i class="fa-solid fa-plus me-1"></i> Add Experience
+                            </button>
+                        </div>
+                        
+                        <div id="experience_container">
+                            <div class="row g-3 experience-row mb-3 pb-3 border-bottom">
+                                <!-- Experience Type -->
+                                <div class="col-md-3">
+                                    <label class="form-label fw-semibold text-muted small">Experience Type</label>
+                                    <select class="form-select experience_type_input" name="experience_type[]">
+                                        <option value="" selected disabled>Select Type</option>
+                                        <option value="Industry">Industry</option>
+                                        <option value="Teaching">Teaching</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Experience Years -->
+                                <div class="col-md-3">
+                                    <label class="form-label fw-semibold text-muted small">Years of Experience</label>
+                                    <input type="number" class="form-control experience_years_input" name="experience_years[]" min="0" max="50">
+                                </div>
+                                
+                                <!-- Previous Work Details -->
+                                <div class="col-md-5">
+                                    <label class="form-label fw-semibold text-muted small">Previous Work Details</label>
+                                    <textarea class="form-control" name="previous_work_details[]" rows="1" placeholder="Brief details of previous work..."></textarea>
+                                </div>
+
+                                <div class="col-md-1 d-flex align-items-end">
+                                    <button type="button" class="btn btn-outline-danger w-100" onclick="removeExperienceRow(this)" disabled>
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+                        <!-- 3. Qualifications (Dynamic) -->
+            <div class="card border-0 shadow-sm rounded-4 bg-white mb-4">
+                <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold text-blue-primary mb-0">
+                        <i class="fa-solid fa-graduation-cap me-2"></i>3. Educational Qualifications
+                    </h6>
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="addQualificationRow()">
+                        <i class="fa-solid fa-plus me-1"></i> Add Qualification
+                    </button>
+                </div>
+                <div class="card-body p-4" id="qualifications_container">
+                    <!-- Default first row -->
+                    <div class="row g-3 qualification-row mb-3 pb-3 border-bottom">
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold text-muted small">Degree Level</label>
+                            <select class="form-select" name="degree_level[]" onchange="filterSpecifications(this)" required>
+                                <option value="" selected disabled>Select Degree</option>
+                                {% for dl in degree_levels %}
+                                <option value="{{ dl.name }}">{{ dl.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold text-muted small">Specification</label>
+                            <select class="form-select" name="specification[]">
+                                <option value="" selected>Select Spec</option>
+                                {% for sp in specifications %}
+                                <option value="{{ sp.name }}" data-degree-level="{{ sp.degree_level.name }}">{{ sp.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold text-muted small">Major / Subject</label>
+                            <select class="form-select" name="major[]">
+                                <option value="" selected>Select Major</option>
+                                {% for ms in major_subjects %}
+                                <option value="{{ ms.name }}">{{ ms.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold text-muted small">College / University</label>
+                            <input type="text" class="form-control" name="college_name[]" placeholder="Name">
+                        </div>
+                        <div class="col-md-1">
+                            <label class="form-label fw-semibold text-muted small">Passed</label>
+                            <input type="text" class="form-control" name="passing_year[]" placeholder="Year">
+                        </div>
+                        <div class="col-md-1">
+                            <label class="form-label fw-semibold text-muted small">CGPA/%</label>
+                            <input type="text" class="form-control" name="cgpa_percentage[]" placeholder="e.g. 8.5">
+                        </div>
+                        <div class="col-md-1 d-flex align-items-end">
+                            <button type="button" class="btn btn-outline-danger w-100" onclick="removeQualificationRow(this)" disabled>
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+<!-- 4. Employment & Status -->
+            <div class="card border-0 shadow-sm rounded-4 bg-white mb-4">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h6 class="fw-bold text-blue-primary mb-0">
+                        <i class="fa-solid fa-business-time me-2"></i>4. Current Employment & Status
+                    </h6>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <!-- Joining Date -->
+                        <div class="col-md-4">
+                            <label for="joining_date" class="form-label fw-semibold text-muted small">Joining Date <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="joining_date" name="joining_date" required>
+                            <div class="invalid-feedback">Please select a joining date.</div>
+                        </div>
+                        
+                        <!-- Employment Type -->
+                        <div class="col-md-4">
+                            <label for="employment_type" class="form-label fw-semibold text-muted small">Employment Type <span class="text-danger">*</span></label>
+                            <select class="form-select" id="employment_type" name="employment_type" required>
+                                <option value="" selected disabled>Select Type</option>
+                                <option value="Permanent">Permanent</option>
+                                <option value="Contract">Contract</option>
+                            </select>
+                            <div class="invalid-feedback">Please select employment type.</div>
+                        </div>
+                        
+                        <!-- Status -->
+                        <div class="col-md-4">
+                            <label for="status" class="form-label fw-semibold text-muted small">Current Employment Status <span class="text-danger">*</span></label>
+                            <select class="form-select" id="status" name="status" required>
+                                <option value="Active" selected>Active</option>
+                                <option value="Inactive">Inactive</option>
+                                <option value="Resigned">Resigned</option>
+                                <option value="Terminated">Terminated</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Hidden Termination Details wrapper (dynamic visibility via JS) -->
+                        <div class="col-12 d-none" id="terminationDetails">
+                            <div class="row g-3 p-3 bg-light rounded-3 border">
+                                <div class="col-md-4">
+                                    <label for="date_of_termination" class="form-label fw-semibold text-muted small">Date of Termination</label>
+                                    <input type="date" class="form-control" id="date_of_termination" name="date_of_termination">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="relieving_date" class="form-label fw-semibold text-muted small">Relieving Date</label>
+                                    <input type="date" class="form-control" id="relieving_date" name="relieving_date">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="termination_reason" class="form-label fw-semibold text-muted small">Reason</label>
+                                    <input type="text" class="form-control" id="termination_reason" name="termination_reason" placeholder="e.g. Resigned / Retired / Dismissed">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 5. Payment & Documentation -->
+            <div class="card border-0 shadow-sm rounded-4 bg-white mb-4">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h6 class="fw-bold text-blue-primary mb-0">
+                        <i class="fa-solid fa-file-invoice-dollar me-2"></i>5. Payment & Documentation
+                    </h6>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="basic_salary" class="form-label fw-semibold text-muted small">Basic Salary</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" step="0.01" class="form-control" id="basic_salary" name="basic_salary" placeholder="0.00">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="aadhar_number" class="form-label fw-semibold text-muted small">Aadhar Number</label>
+                            <input type="text" class="form-control" id="aadhar_number" name="aadhar_number" placeholder="12-digit number" pattern="[0-9]{12}" maxlength="12" minlength="12" title="Please enter a valid 12-digit Aadhar number">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="aadhar_document" class="form-label fw-semibold text-muted small">Aadhar Document (Photo/PDF)</label>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="flex-grow-1">
+                                    <input type="file" class="form-control" id="aadhar_document" name="aadhar_document" accept="image/*,.pdf" onchange="previewImage(this, 'aadhar_preview')">
+                                </div>
+                                <img id="aadhar_preview" src="" alt="Preview" class="rounded d-none shadow-sm" style="width: 38px; height: 38px; object-fit: cover; border: 1px solid #ddd; cursor: pointer;" onclick="openImageModal(this.src)">
+                            </div>
+                        </div>
+                        
+                        <div class="col-12"><hr class="text-muted opacity-25 my-2"></div>
+                        <div class="col-12"><h6 class="fw-bold text-dark small mb-0">Bank Account Details</h6></div>
+                        
+                        <div class="col-md-3">
+                            <label for="account_holder_name" class="form-label fw-semibold text-muted small">Account Holder Name</label>
+                            <input type="text" class="form-control" id="account_holder_name" name="account_holder_name" pattern="[A-Za-z\s]+" title="Please enter a valid name (letters and spaces only)">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="bank_name" class="form-label fw-semibold text-muted small">Bank Name</label>
+                            <input type="text" class="form-control" id="bank_name" name="bank_name" pattern="[A-Za-z\s]+" title="Please enter a valid bank name (letters and spaces only)">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="account_number" class="form-label fw-semibold text-muted small">Account Number</label>
+                            <input type="text" class="form-control" id="account_number" name="account_number" pattern="[0-9]{9,18}" title="Please enter a valid account number (9 to 18 digits)">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="ifsc_code" class="form-label fw-semibold text-muted small">IFSC Code</label>
+                            <input type="text" class="form-control" id="ifsc_code" name="ifsc_code" pattern="^[A-Za-z]{4}0[A-Za-z0-9]{6}$" title="Please enter a valid 11-character IFSC code (e.g. SBIN0001234)">
+                        </div>
+                        <div class="col-md-12">
+                            <label for="bank_document" class="form-label fw-semibold text-muted small">Bank Document (Passbook/Cheque Photo)</label>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="flex-grow-1">
+                                    <input type="file" class="form-control" id="bank_document" name="bank_document" accept="image/*,.pdf" onchange="previewImage(this, 'bank_preview')">
+                                </div>
+                                <img id="bank_preview" src="" alt="Preview" class="rounded d-none shadow-sm" style="width: 38px; height: 38px; object-fit: cover; border: 1px solid #ddd; cursor: pointer;" onclick="openImageModal(this.src)">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 6. Login Account Details -->
+            <div class="card border-0 shadow-sm rounded-4 bg-white mb-4">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h6 class="fw-bold text-blue-primary mb-0">
+                        <i class="fa-solid fa-key me-2"></i>6. Account Credentials
+                    </h6>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <!-- Username -->
+                        <div class="col-md-6">
+                            <label for="username" class="form-label fw-semibold text-muted small">System Username <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="username" name="username" placeholder="Enter staff username" required>
+                            <div class="invalid-feedback">Username is required.</div>
+                        </div>
+                        
+                        <!-- Password -->
+                        <div class="col-md-6">
+                            <label for="password" class="form-label fw-semibold text-muted small">System Password <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="password" class="form-control border-end-0" id="password" name="password" placeholder="Enter temporary password" required>
+                                <span class="input-group-text bg-white cursor-pointerToggle border-start-0 text-muted" id="togglePassword">
+                                    <i class="fa-regular fa-eye-slash" id="toggleIcon"></i>
+                                </span>
+                                <div class="invalid-feedback">Password is required.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Form Submit & Cancel Actions -->
+            <div class="d-flex justify-content-end gap-3 mb-5">
+                <a href="{{ url_for('staff_list') }}" class="btn btn-light border px-4 py-2 fw-semibold">
+                    Cancel
+                </a>
+                <button type="submit" class="btn btn-blue-primary px-5 py-2 fw-semibold">
+                    <i class="fa-solid fa-floppy-disk me-1"></i> Register Staff
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Image Preview Modal -->
+<div class="modal fade" id="imagePreviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header border-0 bg-light p-3">
+                <h6 class="modal-title fw-bold text-dark"><i class="fa-solid fa-image me-2 text-blue-primary"></i>Image Preview</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0 text-center bg-dark">
+                <img id="modalExpandedImage" src="" alt="Expanded Preview" class="img-fluid" style="max-height: 80vh; object-fit: contain;">
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function openImageModal(src) {
+        if (!src) return;
+        document.getElementById('modalExpandedImage').src = src;
+        const myModal = new bootstrap.Modal(document.getElementById('imagePreviewModal'));
+        myModal.show();
+    }
+
+    function previewImage(input, previewId) {
+        const preview = document.getElementById(previewId);
+        if (input.files && input.files[0]) {
+            // Only preview if it's an image
+            if (!input.files[0].type.startsWith('image/')) {
+                preview.classList.add('d-none');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.classList.remove('d-none');
+            };
+            reader.readAsDataURL(input.files[0]);
+        } else {
+            preview.src = "";
+            preview.classList.add('d-none');
+        }
+    }
+
+    
+    function addQualificationRow() {
+        const container = document.getElementById('qualifications_container');
+        const rows = container.getElementsByClassName('qualification-row');
+        const newRow = rows[0].cloneNode(true);
+        
+        // Clear input values
+        const inputs = newRow.querySelectorAll('input');
+        inputs.forEach(input => input.value = '');
+        
+        // Clear selects and reset specification options
+        const selects = newRow.querySelectorAll('select');
+        selects.forEach(select => {
+            select.value = "";
+            if (select.name === "specification[]") {
+                select.querySelectorAll('option').forEach(opt => {
+                    opt.style.display = '';
+                    opt.disabled = false;
+                });
+            }
+        });
+        
+        // Enable remove button
+        const removeBtn = newRow.querySelector('button.btn-outline-danger');
+        removeBtn.disabled = false;
+        
+        container.appendChild(newRow);
+        updateRemoveButtons();
+    }
+    
+    function removeQualificationRow(btn) {
+        const container = document.getElementById('qualifications_container');
+        const row = btn.closest('.qualification-row');
+        if (container.getElementsByClassName('qualification-row').length > 1) {
+            row.remove();
+        }
+        updateRemoveButtons();
+    }
+    
+    function updateRemoveButtons() {
+        const container = document.getElementById('qualifications_container');
+        const rows = container.getElementsByClassName('qualification-row');
+        const firstRemoveBtn = rows[0].querySelector('button.btn-outline-danger');
+        if (rows.length === 1) {
+            firstRemoveBtn.disabled = true;
+        } else {
+            firstRemoveBtn.disabled = false;
+        }
+    }
+    
+    function filterSpecifications(degreeSelect) {
+        const row = degreeSelect.closest('.qualification-row');
+        const specSelect = row.querySelector('select[name="specification[]"]');
+        const selectedDegree = degreeSelect.value;
+        
+        const options = specSelect.querySelectorAll('option');
+        let selectedStillValid = false;
+        
+        options.forEach(option => {
+            if (option.value === "") return; // Skip placeholder
+            
+            if (option.getAttribute('data-degree-level') === selectedDegree) {
+                option.style.display = '';
+                option.disabled = false;
+                if (option.selected) selectedStillValid = true;
+            } else {
+                option.style.display = 'none';
+                option.disabled = true;
+            }
+        });
+        
+        if (!selectedStillValid && specSelect.value !== "") {
+            specSelect.value = "";
+        }
+    }
+
+    function toggleExperienceDetails() {
+        const level = document.getElementById('experience_level').value;
+        const section = document.getElementById('experience_details_section');
+        const typeInputs = document.querySelectorAll('.experience_type_input');
+        const yearsInputs = document.querySelectorAll('.experience_years_input');
+        
+        if (level === 'Experienced') {
+            section.style.display = 'block';
+            typeInputs.forEach(input => input.setAttribute('required', 'required'));
+            yearsInputs.forEach(input => input.setAttribute('required', 'required'));
+        } else {
+            section.style.display = 'none';
+            typeInputs.forEach(input => {
+                input.removeAttribute('required');
+                input.value = '';
+            });
+            yearsInputs.forEach(input => {
+                input.removeAttribute('required');
+                input.value = '';
+            });
+            document.querySelectorAll('textarea[name="previous_work_details[]"]').forEach(input => {
+                input.value = '';
+            });
+        }
+    }
+
+    function addExperienceRow() {
+        const container = document.getElementById('experience_container');
+        const rows = container.getElementsByClassName('experience-row');
+        const newRow = rows[0].cloneNode(true);
+        
+        const inputs = newRow.querySelectorAll('input, textarea');
+        inputs.forEach(input => input.value = '');
+        
+        const selects = newRow.querySelectorAll('select');
+        selects.forEach(select => select.value = "");
+        
+        const removeBtn = newRow.querySelector('button.btn-outline-danger');
+        removeBtn.disabled = false;
+        
+        container.appendChild(newRow);
+        updateExperienceRemoveButtons();
+
+        // Re-apply required attributes if needed
+        const level = document.getElementById('experience_level').value;
+        if (level === 'Experienced') {
+            newRow.querySelector('.experience_type_input').setAttribute('required', 'required');
+            newRow.querySelector('.experience_years_input').setAttribute('required', 'required');
+        }
+    }
+    
+    function removeExperienceRow(btn) {
+        const container = document.getElementById('experience_container');
+        const row = btn.closest('.experience-row');
+        if (container.getElementsByClassName('experience-row').length > 1) {
+            row.remove();
+        }
+        updateExperienceRemoveButtons();
+    }
+    
+    function updateExperienceRemoveButtons() {
+        const container = document.getElementById('experience_container');
+        const rows = container.getElementsByClassName('experience-row');
+        const firstRemoveBtn = rows[0].querySelector('button.btn-outline-danger');
+        if (rows.length === 1) {
+            firstRemoveBtn.disabled = true;
+        } else {
+            firstRemoveBtn.disabled = false;
+        }
+    }
+
+    // JS for showing/hiding termination panel dynamically
+    document.addEventListener('DOMContentLoaded', function() {
+        const statusSelect = document.getElementById('status');
+        const terminationDetails = document.getElementById('terminationDetails');
+        
+        function checkStatus() {
+            const val = statusSelect.value;
+            if (val === 'Terminated' || val === 'Resigned') {
+                terminationDetails.classList.remove('d-none');
+            } else {
+                terminationDetails.classList.add('d-none');
+                // Clear inputs inside
+                document.getElementById('date_of_termination').value = '';
+                document.getElementById('relieving_date').value = '';
+                document.getElementById('termination_reason').value = '';
+            }
+        }
+        
+        statusSelect.addEventListener('change', checkStatus);
+        checkStatus(); // Initial call
+
+        // Staff DOB age constraint (at least 18 years old)
+        const dobInput = document.getElementById('date_of_birth');
+        const today = new Date();
+        const maxYear = today.getFullYear() - 18;
+        const maxDateStr = `${maxYear}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        dobInput.setAttribute('max', maxDateStr);
+    });
+</script>
+{% endblock %}

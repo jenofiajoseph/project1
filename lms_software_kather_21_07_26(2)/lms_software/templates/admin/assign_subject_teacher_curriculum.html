@@ -1,0 +1,72 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Curriculum Subject Assignments - School LMS{% endblock %}
+{% block header_title %}Curriculum Subject Assignments{% endblock %}
+
+{% block extra_css %}
+<style>
+    .assignment-category-tabs .nav-link { color: #64748b; border-radius: .5rem; margin-right: .5rem; font-weight: 500; white-space: nowrap; }
+    .assignment-category-tabs .nav-link.active { background: #ede9fe; color: #4f46e5; font-weight: 600; }
+    .assignment-class-tabs .nav-link { border: 0; border-radius: 50rem; padding: .55rem 1.35rem; margin-right: .5rem; background: #f8fafc; color: #475569; font-weight: 600; white-space: nowrap; }
+    .assignment-class-tabs .nav-link.active { background: var(--bs-primary); color: #fff; }
+    .assignment-section-tabs .nav-link { border-radius: 50rem; padding: .4rem 1rem; margin-right: .5rem; border: 1px solid #dbe3ec; color: var(--blue-primary); white-space: nowrap; }
+    .assignment-section-tabs .nav-link.active { background: var(--bs-primary); border-color: var(--bs-primary); color: #fff; }
+</style>
+{% endblock %}
+
+{% block content %}
+{% if assignment_navigation_groups %}
+<div class="card border-0 shadow-sm rounded-4 bg-white p-2 mb-4">
+    <ul class="nav nav-pills assignment-category-tabs p-2 flex-nowrap overflow-auto" role="tablist">
+        {% for category in assignment_navigation_groups %}
+        <li class="nav-item"><button class="nav-link {% if loop.first %}active{% endif %}" data-bs-toggle="tab" data-bs-target="#assignment-category-{{ loop.index }}" type="button">{{ category.name }}</button></li>
+        {% endfor %}
+    </ul>
+</div>
+
+<div class="tab-content">
+    {% for category in assignment_navigation_groups %}
+    <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="assignment-category-{{ loop.index }}">
+        {% set category_index = loop.index %}
+        <ul class="nav assignment-class-tabs flex-nowrap overflow-auto mb-4" role="tablist">
+            {% for class_group in category.classes %}
+            <li class="nav-item"><button class="nav-link {% if loop.first %}active{% endif %}" data-bs-toggle="tab" data-bs-target="#assignment-class-{{ category_index }}-{{ loop.index }}" type="button">Class {{ class_group.classroom.class_name }}</button></li>
+            {% endfor %}
+        </ul>
+
+        <div class="tab-content">
+            {% for class_group in category.classes %}
+            <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="assignment-class-{{ category_index }}-{{ loop.index }}">
+                <div class="card border-0 shadow-sm rounded-4 bg-white">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold text-primary pb-2 mb-3 border-bottom"><i class="fa-solid fa-chalkboard-user me-2"></i>Class {{ class_group.classroom.class_name }} Assignments</h6>
+                        {% if class_group.classroom.sections %}
+                        <ul class="nav assignment-section-tabs mb-3 flex-nowrap overflow-auto" role="tablist">
+                            {% for section_group in class_group.section_groups %}
+                            <li class="nav-item"><button class="nav-link {% if loop.first %}active{% endif %}" data-bs-toggle="tab" data-bs-target="#assignment-section-{{ class_group.classroom.class_id }}-{{ section_group.section.section_id }}" type="button">Section {{ section_group.section.section_name }}</button></li>
+                            {% endfor %}
+                        </ul>
+                        <div class="tab-content">
+                            {% for section_group in class_group.section_groups %}
+                            {% set section_assignments = section_group.assignments %}
+                            <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="assignment-section-{{ class_group.classroom.class_id }}-{{ section_group.section.section_id }}">
+                                {% include "admin/_assignment_view_table.html" %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                            {% set section_assignments = class_group.section_groups[0].assignments %}
+                            {% include "admin/_assignment_view_table.html" %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card border-0 shadow-sm rounded-4 bg-white text-center py-5"><i class="fa-solid fa-book-open fa-3x text-muted opacity-50 mb-3"></i><h6 class="fw-bold">No subject assignments yet</h6><p class="text-muted small mb-0">Assignments made through Assign Subject to Staff will appear here class-wise.</p></div>
+{% endif %}
+{% endblock %}

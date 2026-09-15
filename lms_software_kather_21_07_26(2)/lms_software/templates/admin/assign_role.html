@@ -1,0 +1,126 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Assign Roles - School LMS{% endblock %}
+
+{% block header_title %}Assign Staff Roles{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+<style>
+    .dataTables_wrapper .row { margin-bottom: 0.5rem; }
+    .dataTables_filter { margin-bottom: 0.5rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+        {% set unassigned_count = 0 %}
+        {% for staff in staff_members %}
+            {% if not staff.role %}
+                {% set unassigned_count = unassigned_count + 1 %}
+            {% endif %}
+        {% endfor %}
+        
+        {% if unassigned_count > 0 %}
+        <div class="alert alert-warning shadow-sm border-0 mb-4" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="fa-solid fa-triangle-exclamation me-3 fs-5"></i>
+                <div>
+                    <strong>Action Required:</strong> You have <strong>{{ unassigned_count }}</strong> staff member(s) without an assigned role. Please assign them a role below.
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+<div class="card border-0 shadow-sm rounded-4 bg-white">
+    <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+        <h6 class="fw-bold text-dark mb-0">Staff Role Assignments</h6>
+        <span class="badge bg-blue-light text-blue-primary rounded-pill">{{ staff_members|length }} Staff Members</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table id="assignRoleTable" class="table table-bordered table-hover align-middle mb-0 w-100">
+                <thead class="table-light text-muted fw-semibold small">
+                    <tr>
+                        <th class="ps-4">EMP ID</th>
+                        <th class="">Staff Name</th>
+                        <th class="">Department</th>
+                        <th class="">Current Role</th>
+                        <th class=" text-end pe-4">Assign New Role</th>
+                    </tr>
+                </thead>
+                <tbody class="">
+                    {% if staff_members %}
+                        {% for staff in staff_members %}
+                            <tr class="border-bottom border-light">
+                                <td class="ps-4 fw-semibold text-dark">{{ staff.employee_id }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        {% if staff.photo %}
+                                            <img src="{{ url_for('static', filename='uploads/staff/' + staff.photo) }}" alt="Photo" class="rounded-circle me-3 border" style="width: 40px; height: 40px; object-fit: cover;">
+                                        {% else %}
+                                            <div class="rounded-circle me-3 d-flex align-items-center justify-content-center bg-blue-light text-blue-primary fw-bold" style="width: 40px; height: 40px;">
+                                                {{ staff.first_name[0] }}
+                                            </div>
+                                        {% endif %}
+                                        <div>
+                                            <div class="fw-bold text-dark">{% if staff.gender == 'Male' %}Mr. {% elif staff.gender == 'Female' %}Ms. {% endif %}{{ staff.first_name }} {{ staff.last_name or '' }}</div>
+                                            <div class="small text-muted">{{ staff.designation }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ staff.department.name }}</td>
+                                <td>
+                                    {% if staff.role %}
+                                        <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-2 fw-semibold">
+                                            {{ staff.role.name }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-2 fw-semibold">
+                                            Unassigned
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end pe-4">
+                                    <form method="POST" action="{{ url_for('assign_role_post', staff_id=staff.staff_id) }}" class="d-flex align-items-center justify-content-end gap-2">
+                                        <select name="role_id" class="form-select form-select-sm" style="max-width: 180px;" required>
+                                            <option value="" disabled {% if not staff.role_id %}selected{% endif %}>Select Role</option>
+                                            {% for role in roles %}
+                                                <option value="{{ role.id }}" {% if staff.role_id == role.id %}selected{% endif %}>{{ role.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="submit" class="btn btn-sm btn-blue-primary">
+                                            Save
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-muted">No staff members found.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#assignRoleTable').DataTable({
+            "pageLength": 10,
+            "lengthChange": false,
+            "language": {
+                "search": "",
+                "searchPlaceholder": "Search Staff..."
+            }
+        });
+    });
+</script>
+{% endblock %}

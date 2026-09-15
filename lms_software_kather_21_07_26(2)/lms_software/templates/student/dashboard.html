@@ -1,0 +1,94 @@
+{% extends "student/base.html" %}
+
+{% block title %}Dashboard - Student Portal{% endblock %}
+{% block header_title %}My Dashboard{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    
+    {% if pending_exam %}
+    <!-- Pending Exam Enforcement -->
+    <div class="col-12">
+        <div class="card border-0 rounded-4 shadow-lg overflow-hidden position-relative" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+            
+            <div class="card-body p-5 text-center text-white position-relative z-1">
+                <div class="mb-4">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-white bg-opacity-25 rounded-circle" style="width: 80px; height: 80px;">
+                        <i class="fa-solid fa-file-signature fa-3x text-white"></i>
+                    </div>
+                </div>
+                
+                <h2 class="fw-bold mb-3">Mandatory Entrance Exam</h2>
+                <p class="lead mb-4 fw-light text-white opacity-75">You have been assigned an entrance exam: <strong>{{ pending_exam.title }}</strong>.<br>You must complete this exam before you can access other dashboard features.</p>
+                
+                <div class="d-flex justify-content-center gap-3">
+                    <div class="bg-white bg-opacity-10 rounded px-4 py-2 border border-white border-opacity-25">
+                        <span class="small text-uppercase fw-bold opacity-75 d-block mb-1">Duration</span>
+                        <span class="fs-5 fw-bold"><i class="fa-regular fa-clock me-2"></i>{{ pending_exam.duration_minutes }} Minutes</span>
+                    </div>
+                </div>
+                
+                <div class="mt-5">
+                    <a href="{{ url_for('student_take_exam', exam_id=pending_exam.id) }}" class="btn btn-light btn-lg fw-bold px-5 py-3 rounded-pill text-danger shadow">
+                        START EXAM NOW
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Overlay to disable rest of page if desired (not strictly necessary since we cover the dashboard content) -->
+        </div>
+    </div>
+    {% else %}
+    <!-- Normal Dashboard Content -->
+    <div class="col-12 col-md-8">
+        <div class="card border-0 shadow-sm rounded-4 bg-white mb-4">
+            <div class="card-body p-5 text-center">
+                <i class="fa-regular fa-face-smile fa-4x text-muted mb-3 opacity-25"></i>
+                <h4 class="fw-bold text-dark">Welcome back, {{ session.get('student_username') }}!</h4>
+                <p class="text-muted">You have no pending mandatory exams. Have a great day learning!</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Completed Exams Section -->
+    {% if completed_attempts %}
+    <div class="col-12 mt-5">
+        <h5 class="fw-bold text-dark mb-4"><i class="fa-solid fa-list-check me-2 text-primary"></i> Completed Entrance Exams</h5>
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-secondary small text-uppercase">
+                        <tr>
+                            <th class="py-3 px-4 fw-semibold border-bottom-0">Exam Title</th>
+                            <th class="py-3 px-4 fw-semibold border-bottom-0">Score</th>
+                            <th class="py-3 px-4 fw-semibold border-bottom-0">Completed On</th>
+                            <th class="py-3 px-4 fw-semibold border-bottom-0 text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="border-top-0">
+                        {% for attempt in completed_attempts %}
+                        <tr>
+                            <td class="py-3 px-4 fw-medium text-dark">{{ attempt.exam.title }}</td>
+                            <td class="py-3 px-4 fw-bold text-primary">
+                                {{ attempt.score }} / {{ attempt.exam.questions|length }}
+                            </td>
+                            <td class="py-3 px-4 text-muted small">
+                                {{ attempt.completed_at.strftime('%Y-%m-%d %H:%M') }}
+                            </td>
+                            <td class="py-3 px-4 text-end">
+                                <a href="{{ url_for('student_exam_result', exam_id=attempt.exam.id) }}" class="btn btn-sm btn-outline-primary rounded-3">
+                                    View Result
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

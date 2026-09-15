@@ -1,0 +1,192 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Academic Years - School LMS{% endblock %}
+
+{% block header_title %}Academic Year Management{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Right Column: Add Academic Year Form -->
+    <div class="col-lg-4 order-2">
+        <div class="card border-0 shadow-sm rounded-4 bg-white">
+            <div class="card-header bg-white border-bottom py-3">
+                <h6 class="fw-bold text-blue-primary mb-0">
+                    <i class="fa-solid fa-calendar-plus me-2"></i>Create Academic Year
+                </h6>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('academic_years') }}" class="needs-validation" novalidate>
+                    <!-- Name field -->
+                    <div class="mb-3">
+                        <label for="name" class="form-label fw-semibold text-muted small">Academic Year Name</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="name" 
+                               name="name" 
+                               placeholder="e.g. 2026-2027" 
+                               required>
+                        <div class="invalid-feedback">
+                            Please provide a name (e.g. 2026-2027).
+                        </div>
+                    </div>
+                    
+                    <!-- Start Date field -->
+                    <div class="mb-3">
+                        <label for="start_date" class="form-label fw-semibold text-muted small">Start Date</label>
+                        <input type="date" 
+                               class="form-control" 
+                               id="start_date" 
+                               name="start_date" 
+                               required>
+                        <div class="invalid-feedback">
+                            Please select a start date.
+                        </div>
+                    </div>
+                    
+                    <!-- End Date field -->
+                    <div class="mb-3">
+                        <label for="end_date" class="form-label fw-semibold text-muted small">End Date</label>
+                        <input type="date" 
+                               class="form-control" 
+                               id="end_date" 
+                               name="end_date" 
+                               required>
+                        <div class="invalid-feedback">
+                            Please select an end date.
+                        </div>
+                    </div>
+                    
+                    <!-- Is Current Active check -->
+                    <div class="mb-4">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="is_current" name="is_current" value="y">
+                            <label class="form-check-label text-dark fw-semibold small" for="is_current">Set as Current Active Year</label>
+                        </div>
+                        <div class="text-muted small mt-1" style="font-size: 0.75rem;">
+                            Setting this will make it the active calendar year across the LMS and unset previous active years.
+                        </div>
+                    </div>
+                    
+                    <!-- Submit button -->
+                    <button type="submit" class="btn btn-blue-primary w-100 py-2 fw-semibold">
+                        <i class="fa-solid fa-plus me-1"></i> Add Academic Year
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Left Column: Academic Years Table -->
+    <div class="col-lg-8 order-1">
+        <div class="card border-0 shadow-sm rounded-4 bg-white">
+            <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold text-dark mb-0">
+                    <i class="fa-solid fa-list me-2 text-blue-primary"></i>Academic Years List
+                </h6>
+                <div class="d-flex align-items-center gap-2">
+                    <form action="{{ url_for('academic_years') }}" method="GET" class="d-flex">
+                        <input type="text" name="search" class="form-control form-control-sm" placeholder="Search..." value="{{ search_query or '' }}">
+                        <button type="submit" class="btn btn-sm btn-blue-primary ms-1"><i class="fa-solid fa-search"></i></button>
+                    </form>
+                    <span class="badge bg-blue-light text-blue-primary rounded-pill">{{ pagination.total }} Registered</span>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light text-muted fw-semibold small">
+                            <tr>
+                                <th class="ps-4 border-0">ID</th>
+                                <th class="border-0">Academic Year</th>
+                                <th class="border-0">Start Date</th>
+                                <th class="border-0">End Date</th>
+                                <th class="border-0">Status</th>
+                                <th class="border-0 text-end pe-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="border-0">
+                            {% if years %}
+                                {% for year in years %}
+                                    <tr class="border-bottom border-light">
+                                        <td class="ps-4 text-muted small fw-semibold">#{{ year.id }}</td>
+                                        <td class="fw-bold text-dark">{{ year.name }}</td>
+                                        <td class="text-muted">{{ year.start_date.strftime('%d %b %Y') }}</td>
+                                        <td class="text-muted">{{ year.end_date.strftime('%d %b %Y') }}</td>
+                                        <td>
+                                            {% if year.is_current %}
+                                                <span class="badge bg-success-light text-success fw-bold px-3 py-1.5 rounded-pill">
+                                                    <i class="fa-solid fa-circle-check me-1"></i> Current Active
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-light text-muted border fw-medium px-3 py-1.5 rounded-pill">
+                                                    Inactive
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end pe-4">
+                                            <a href="{{ url_for('edit_academic_year', year_id=year.id) }}" class="btn btn-sm btn-light text-primary border shadow-sm me-1">
+                                                <i class="fa-solid fa-pen-to-square"></i> Edit
+                                            </a>
+                                            <form method="POST" action="{{ url_for('delete_academic_year', year_id=year.id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this academic year?');">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger shadow-sm" {% if year.is_current %}disabled title="Cannot delete active year"{% endif %}>
+                                                    <i class="fa-solid fa-trash"></i> Delete
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-5 text-muted">
+                                        <i class="fa-regular fa-folder-open fa-3x mb-3 text-muted"></i>
+                                        <div>No academic years registered yet.</div>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Pagination -->
+                {% if pagination.pages > 0 %}
+                <div class="d-flex justify-content-between align-items-center p-3 border-top border-light bg-light">
+                    <div class="small text-muted">
+                        Showing {{ pagination.items|length }} of {{ pagination.total }} entries
+                    </div>
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination pagination-sm mb-0">
+                            {% if pagination.has_prev %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('academic_years', page=pagination.prev_num, search=search_query) }}">&laquo;</a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+                            {% endif %}
+                            
+                            {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=1) %}
+                                {% if page_num %}
+                                    {% if pagination.page == page_num %}
+                                    <li class="page-item active"><span class="page-link">{{ page_num }}</span></li>
+                                    {% else %}
+                                    <li class="page-item"><a class="page-link" href="{{ url_for('academic_years', page=page_num, search=search_query) }}">{{ page_num }}</a></li>
+                                    {% endif %}
+                                {% else %}
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if pagination.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('academic_years', page=pagination.next_num, search=search_query) }}">&raquo;</a>
+                            </li>
+                            {% else %}
+                            <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

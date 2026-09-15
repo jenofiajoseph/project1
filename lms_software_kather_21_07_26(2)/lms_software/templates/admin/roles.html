@@ -1,0 +1,101 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Roles - School LMS{% endblock %}
+
+{% block header_title %}Roles Management{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+<style>
+    .dataTables_wrapper .row { margin-bottom: 0.5rem; }
+    .dataTables_filter { margin-bottom: 0.5rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4 bg-white">
+            <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold text-dark mb-0">Roles</h6>
+                <span class="badge bg-blue-light text-blue-primary rounded-pill">{{ roles|length }} Roles</span>
+            </div>
+            <div class="card-body p-4">
+                <div class="table-responsive">
+                    <table id="rolesTable" class="table table-bordered table-hover align-middle mb-0 w-100">
+                        <thead class="table-light text-muted fw-semibold small">
+                            <tr>
+                                <th class="ps-4">ID</th>
+                                <th>Role Name</th>
+                                <th class="text-end pe-4">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for dept in roles %}
+                                <tr>
+                                    <td class="ps-4 text-muted small fw-semibold">#{{ dept.id }}</td>
+                                    <td class="fw-bold text-dark">
+                                        {{ dept.name }}
+                                        {% if dept.short_form %}
+                                            <span class="badge bg-secondary ms-2">{{ dept.short_form }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <form method="POST" action="{{ url_for('delete_role', id=dept.id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this Role? Warning: This will fail if staff are assigned to it.');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 bg-white">
+            <div class="card-header bg-white border-bottom py-3">
+                <h6 class="fw-bold text-blue-primary mb-0">
+                    <i class="fa-solid fa-user-shield me-2"></i>Add Role
+                </h6>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('add_role') }}" class="needs-validation" novalidate>
+                    <div class="mb-3">
+                        <label for="role_name" class="form-label fw-semibold text-muted small">Role Name</label>
+                        <input type="text" class="form-control" id="role_name" name="name" placeholder="e.g. Mathematics" oninput="this.value = this.value.toUpperCase()" required>
+                        <div class="invalid-feedback">Please provide a Role Name.</div>
+                    </div>
+                    <div class="mb-4">
+                        <label for="short_form" class="form-label fw-semibold text-muted small">Short Form (Optional)</label>
+                        <input type="text" class="form-control" id="short_form" name="short_form" placeholder="e.g. MATHS" oninput="this.value = this.value.toUpperCase()">
+                    </div>
+                    <button type="submit" class="btn btn-blue-primary w-100 py-2 fw-semibold">
+                        <i class="fa-solid fa-plus me-1"></i> Add Role
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#rolesTable').DataTable({
+            "pageLength": 10,
+            "lengthChange": false,
+            "language": {
+                "search": "",
+                "searchPlaceholder": "Search Roles..."
+            }
+        });
+    });
+</script>
+{% endblock %}

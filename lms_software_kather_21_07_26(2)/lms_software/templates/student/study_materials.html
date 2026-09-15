@@ -1,0 +1,108 @@
+{% extends "student/base.html" %}
+
+{% block title %}Study Materials ({{ category|title }}) - Student Portal{% endblock %}
+
+{% block header_title %}Study Materials ({{ category|title }}){% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4 bg-white">
+            <div class="card-body p-4 d-flex align-items-center justify-content-between">
+                <div>
+                    <h5 class="fw-bold text-dark mb-1"><i class="fa-solid fa-book-open-reader me-2 text-primary"></i> Available {{ category|title }} Materials</h5>
+                    <p class="text-muted small mb-0">{% if category == 'video' %}Watch and download video resources uploaded by your teachers.{% elif category == 'docs' %}Download notes, PDFs, and document resources.{% else %}Chat placeholder.{% endif %}</p>
+                </div>
+                <div>
+                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary px-3 py-2 rounded-pill shadow-sm">
+                        <i class="fa-solid fa-layer-group me-1"></i> Total Materials: {{ materials|length }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    {% if materials %}
+        {% for material in materials %}
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm rounded-4 study-material-card transition-hover">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-0 d-flex justify-content-between align-items-start">
+                    <div class="icon-box rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 48px; height: 48px; 
+                        {% if material.file_type in ['pdf'] %} background-color: #ffe5e5; color: #dc3545;
+                        {% elif material.file_type in ['doc', 'docx'] %} background-color: #e5f0ff; color: #0d6efd;
+                        {% elif material.file_type in ['mp4', 'mkv', 'avi'] %} background-color: #e6f8ec; color: #198754;
+                        {% elif material.file_type in ['ppt', 'pptx'] %} background-color: #fff3cd; color: #ffc107;
+                        {% else %} background-color: #f8f9fa; color: #6c757d; {% endif %}">
+                        
+                        {% if material.file_type in ['pdf'] %}
+                            <i class="fa-solid fa-file-pdf fs-5"></i>
+                        {% elif material.file_type in ['doc', 'docx'] %}
+                            <i class="fa-solid fa-file-word fs-5"></i>
+                        {% elif material.file_type in ['mp4', 'mkv', 'avi'] %}
+                            <i class="fa-solid fa-file-video fs-5"></i>
+                        {% elif material.file_type in ['ppt', 'pptx'] %}
+                            <i class="fa-solid fa-file-powerpoint fs-5"></i>
+                        {% else %}
+                            <i class="fa-solid fa-file fs-5"></i>
+                        {% endif %}
+                    </div>
+                    <div class="text-end">
+                        <div class="text-muted" style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">Uploaded By</div>
+                        <div class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle shadow-sm mt-1">
+                            <i class="fa-solid fa-chalkboard-user me-1"></i> 
+                            {% if material.staff.gender == 'Male' %}Mr. {% elif material.staff.gender == 'Female' %}Ms. {% endif %}{{ material.staff.first_name }} {{ material.staff.last_name }}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body pt-3">
+                    <h6 class="fw-bold text-dark mb-3" style="line-height: 1.4;">{{ material.title }}</h6>
+                    
+                    <div class="bg-light rounded p-3 mb-3 border">
+                        <div class="text-muted mb-1" style="font-size: 0.7rem; font-weight: 600; text-transform: uppercase;">Description</div>
+                        <p class="text-dark small mb-0" style="white-space: pre-wrap;">{{ material.description or 'No description provided.' }}</p>
+                    </div>
+                    
+                    <div class="d-flex align-items-center text-muted small mt-auto fw-medium">
+                        <i class="fa-regular fa-clock me-2 text-primary"></i> {{ material.uploaded_at.strftime('%d %b %Y, %I:%M %p') }}
+                    </div>
+                </div>
+                <div class="card-footer bg-white border-top p-3 d-flex justify-content-between align-items-center">
+                    <span class="badge bg-light text-muted border text-uppercase" style="font-size: 0.65rem;">
+                        {{ material.file_type }} file
+                    </span>
+                    <a href="{{ url_for('static', filename='uploads/study_materials/' + material.file_path.replace('\\\\', '/').split('/')[-1]) }}" class="btn btn-primary btn-sm px-3 rounded-pill shadow-sm" download>
+                        <i class="fa-solid fa-cloud-arrow-down me-1"></i> Download
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-4 text-center py-5">
+                <div class="card-body">
+                    <div class="mb-4 text-muted opacity-50">
+                        <i class="fa-solid fa-box-open" style="font-size: 4rem;"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-2">No Study Materials Found</h4>
+                    <p class="text-muted mx-auto mb-0" style="max-width: 400px;">
+                        There are currently no study materials uploaded for your class. Please check back later or ask your teachers.
+                    </p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    .study-material-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .study-material-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+    }
+</style>
+{% endblock %}

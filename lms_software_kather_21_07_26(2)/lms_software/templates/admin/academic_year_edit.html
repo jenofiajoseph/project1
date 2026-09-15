@@ -1,0 +1,84 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Edit Academic Year - School LMS{% endblock %}
+
+{% block header_title %}Edit Academic Year{% endblock %}
+
+{% block content %}
+<div class="row g-4 justify-content-center">
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 bg-white">
+            <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold text-blue-primary mb-0">
+                    <i class="fa-solid fa-pen-to-square me-2"></i>Edit Academic Year
+                </h6>
+                <a href="{{ url_for('academic_years') }}" class="btn btn-sm btn-light border shadow-sm">
+                    <i class="fa-solid fa-arrow-left me-1"></i> Back
+                </a>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('edit_academic_year', year_id=year.id) }}" class="needs-validation" novalidate>
+                    <!-- Name field -->
+                    <div class="mb-3">
+                        <label for="name" class="form-label fw-semibold text-muted small">Academic Year Name</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="name" 
+                               name="name" 
+                               value="{{ year.name }}"
+                               placeholder="e.g. 2026-2027" 
+                               required>
+                        <div class="invalid-feedback">
+                            Please provide a name (e.g. 2026-2027).
+                        </div>
+                    </div>
+                    
+                    <!-- Start Date field -->
+                    <div class="mb-3">
+                        <label for="start_date" class="form-label fw-semibold text-muted small">Start Date</label>
+                        <input type="date" 
+                               class="form-control" 
+                               id="start_date" 
+                               name="start_date" 
+                               value="{{ year.start_date.strftime('%Y-%m-%d') }}"
+                               required>
+                        <div class="invalid-feedback">
+                            Please select a start date.
+                        </div>
+                    </div>
+                    
+                    <!-- End Date field -->
+                    <div class="mb-3">
+                        <label for="end_date" class="form-label fw-semibold text-muted small">End Date</label>
+                        <input type="date" 
+                               class="form-control" 
+                               id="end_date" 
+                               name="end_date" 
+                               value="{{ year.end_date.strftime('%Y-%m-%d') }}"
+                               required>
+                        <div class="invalid-feedback">
+                            Please select an end date.
+                        </div>
+                    </div>
+                    
+                    <!-- Is Current Active check -->
+                    <div class="mb-4">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="is_current" name="is_current" value="y" {% if year.is_current %}checked{% endif %}>
+                            <label class="form-check-label text-dark fw-semibold small" for="is_current">Set as Current Active Year</label>
+                        </div>
+                        <div class="text-muted small mt-1" style="font-size: 0.75rem;">
+                            Setting this will make it the active calendar year across the LMS and unset previous active years.
+                        </div>
+                    </div>
+                    
+                    <!-- Submit button -->
+                    <button type="submit" class="btn btn-blue-primary w-100 py-2 fw-semibold">
+                        <i class="fa-solid fa-save me-1"></i> Update Academic Year
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

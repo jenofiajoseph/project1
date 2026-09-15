@@ -1,0 +1,499 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Timetable - School LMS{% endblock %}
+
+{% block header_title %}Timetable Management{% endblock %}
+
+{% block content %}
+{% set periods = timetable_periods() %}
+
+<div class="card border-0 shadow-sm rounded-4 bg-white mb-4">
+    <div class="card-header bg-white border-bottom p-3">
+        <!-- Tab navigation for Student and Teacher separation -->
+        <ul class="nav nav-pills card-header-pills" id="timetableTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link {% if active_tab == 'student' %}active{% endif %} fw-semibold px-4 py-2" 
+                        id="student-tab" 
+                        data-bs-toggle="pill" 
+                        data-bs-target="#student-view" 
+                        type="button" 
+                        role="tab" 
+                        aria-controls="student-view" 
+                        aria-selected="{% if active_tab == 'student' %}true{% else %}false{% endif %}">
+                    <i class="fa-solid fa-user-graduate me-2"></i> Student Timetable
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link {% if active_tab == 'teacher' %}active{% endif %} fw-semibold px-4 py-2" 
+                        id="teacher-tab" 
+                        data-bs-toggle="pill" 
+                        data-bs-target="#teacher-view" 
+                        type="button" 
+                        role="tab" 
+                        aria-controls="teacher-view" 
+                        aria-selected="{% if active_tab == 'teacher' %}true{% else %}false{% endif %}">
+                    <i class="fa-solid fa-chalkboard-user me-2"></i> Teacher Timetable
+                </button>
+            </li>
+        </ul>
+    </div>
+
+    <div class="card-body p-4">
+        <div class="tab-content" id="timetableTabsContent">
+            
+            <!-- Student Timetable Tab -->
+            <div class="tab-pane fade {% if active_tab == 'student' %}show active{% endif %}" 
+                 id="student-view" 
+                 role="tabpanel" 
+                 aria-labelledby="student-tab">
+                
+                <div class="row align-items-end g-3 mb-4">
+                    <div class="col-md-8">
+                        <form method="GET" action="{{ url_for('admin_timetable') }}" class="row g-3" id="student-filter-form">
+                            <input type="hidden" name="tab" value="student">
+                            <div class="col-md-8">
+                                <label for="classSectionSearch" class="form-label fw-semibold text-muted small">Select Class &amp; Section</label>
+                                <div class="dropdown" id="classSectionDropdown">
+                                    <input type="hidden" name="class_section_id" id="classSectionId" value="{% if selected_class_id and selected_section_id %}{{ selected_class_id }}_{{ selected_section_id }}{% endif %}">
+                                    <button type="button" class="form-select rounded-3 py-2 bg-light text-muted text-start d-flex justify-content-between align-items-center" id="classSectionToggle" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-haspopup="listbox">
+                                        <span id="classSectionLabel">{% if selected_class_id and selected_section_id %}Class {{ selected_class_name }} - {{ selected_section_name }}{% else %}-- Choose Class &amp; Section --{% endif %}</span>
+                                        <i class="fa-solid fa-chevron-down ms-2 small"></i>
+                                    </button>
+                                    <div class="dropdown-menu w-100 p-2 shadow-sm" style="max-height: 340px; overflow-y: auto;">
+                                        <div class="input-group input-group-sm mb-2">
+                                            <span class="input-group-text bg-light border-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                                            <input type="text" class="form-control border-0 bg-light" id="classSectionSearch" placeholder="Search class or section (e.g. LKG, 5, A)..." autocomplete="off" role="combobox" aria-controls="classSectionList" aria-expanded="false" aria-autocomplete="list">
+                                        </div>
+                                        <div id="classSectionList" role="listbox" aria-label="Class and Section">
+                                            {% for classroom in classrooms %}
+                                                {% for sec in classroom.sections %}
+                                                    <button type="button" class="dropdown-item rounded-2" role="option" data-id="{{ classroom.class_id }}_{{ sec.section_id }}" data-name="Class {{ classroom.class_name }} - {{ sec.section_name }}" data-search="{{ classroom.class_name }} {{ sec.section_name }}">
+                                                        Class {{ classroom.class_name }} - {{ sec.section_name }}
+                                                    </button>
+                                                {% endfor %}
+                                            {% endfor %}
+                                        </div>
+                                        <div id="classSectionEmpty" class="text-muted small text-center py-2 d-none">No matching class/section found</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    {% if selected_class_id and selected_section_id %}
+                    <div class="col-md-4 text-md-end">
+                        <a href="{{ url_for('admin_timetable_edit', class_id=selected_class_id, section_id=selected_section_id) }}" 
+                           class="btn btn-blue-primary px-4 py-2 fw-semibold">
+                            <i class="fa-solid fa-pen-to-square me-2"></i> Edit Timetable
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if selected_class_id and selected_section_id %}
+                    <h5 class="fw-bold text-dark mb-3">
+                        Timetable for Class {{ selected_class_name }} - {{ selected_section_name }}
+                    </h5>
+                    
+                    {% if sat_alt_day %}
+                        <div class="alert alert-info border-0 rounded-3 mb-4">
+                            <i class="fa-solid fa-circle-info me-2 text-info"></i>
+                            <strong>Note:</strong> Saturday follows the <strong>{{ sat_alt_day }}'s day order</strong>. Timetable cells for Saturday are mirrored from {{ sat_alt_day }}.
+                        </div>
+                    {% endif %}
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover align-middle text-center mb-0" style="min-width: 800px;">
+                            <thead class="table-light text-muted fw-bold small text-uppercase">
+                                <tr>
+                                    <th style="width: 120px;" class="py-3">Day / Period</th>
+                                    {% for period in periods %}
+                                        {% if period.type == 'period' %}
+                                            <th class="py-3">
+                                                <div>Period {{ period.num }}</div>
+                                            </th>
+                                        {% elif period.type == 'break' %}
+                                            <th class="py-3" style="background:#f0f0f0;">
+                                                <div>{{ period.label }}</div>
+                                            </th>
+                                        {% elif period.type == 'lunch' %}
+                                            <th class="py-3" style="background:#e0e0e0;">
+                                                <div>{{ period.label }}</div>
+                                            </th>
+                                        {% endif %}
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] %}
+                                    <tr {% if day == 'Saturday' %}class="table-light bg-opacity-10"{% endif %}>
+                                        <td class="fw-bold text-dark bg-light">{{ day }}</td>
+                                        {% for period in periods %}
+                                            {% if period.type == 'period' %}
+                                                <td class="p-3 align-top" style="height: 100px; width: 11%;">
+                                                    {% set cell = grid_data[day][period.num] %}
+                                                    {% if cell %}
+                                                        <div class="fw-bold text-blue-primary small mb-1">{{ cell.subject }}</div>
+                                                        <div class="text-muted small" style="font-size: 0.75rem;">
+                                                            <i class="fa-solid fa-chalkboard-user me-1 text-muted opacity-50"></i>
+                                                            {{ cell.teacher }}
+                                                        </div>
+                                                    {% else %}
+                                                        <span class="text-muted text-opacity-25" style="font-size: 0.75rem;">Free</span>
+                                                    {% endif %}
+                                                </td>
+                                            {% elif period.type == 'break' %}
+                                                <td class="p-3 align-top" style="background:#f0f0f0; height: 100px; text-align:center; vertical-align:middle;">
+                                                    <div>{{ period.label }}</div>
+                                                </td>
+                                            {% elif period.type == 'lunch' %}
+                                                <td class="p-3 align-top" style="background:#e0e0e0; height: 100px; text-align:center; vertical-align:middle;">
+                                                    <div>{{ period.label }}</div>
+                                                </td>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="fa-regular fa-calendar-check fa-4x mb-3 text-muted opacity-50"></i>
+                        <h5>No Class &amp; Section Selected</h5>
+                        <p class="small text-muted mb-0">Please select a class and section from the dropdown above to view or manage its timetable.</p>
+                    </div>
+                {% endif %}
+
+            </div>
+
+            <!-- Teacher Timetable Tab -->
+            <div class="tab-pane fade {% if active_tab == 'teacher' %}show active{% endif %}" 
+                 id="teacher-view" 
+                 role="tabpanel" 
+                 aria-labelledby="teacher-tab">
+                
+                <div class="row align-items-end g-3 mb-4">
+                    <div class="col-md-8">
+                        <form method="GET" action="{{ url_for('admin_timetable') }}" class="row g-3" id="teacher-filter-form">
+                            <input type="hidden" name="tab" value="teacher">
+                            <div class="col-md-8">
+                                <label for="teacherSearch" class="form-label fw-semibold text-muted small">Select Teacher</label>
+                                <div class="dropdown" id="teacherDropdown">
+                                    <input type="hidden" name="staff_id" id="teacherId" value="{% if selected_staff_id %}{{ selected_staff_id }}{% endif %}">
+                                    <button type="button" class="form-select rounded-3 py-2 bg-light text-muted text-start d-flex justify-content-between align-items-center" id="teacherToggle" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-haspopup="listbox">
+                                        <span id="teacherLabel">{% if selected_staff_id %}{{ selected_teacher_name }}{% else %}-- Choose Teacher --{% endif %}</span>
+                                        <i class="fa-solid fa-chevron-down ms-2 small"></i>
+                                    </button>
+                                    <div class="dropdown-menu w-100 p-2 shadow-sm" style="max-height: 340px; overflow-y: auto;">
+                                        <div class="input-group input-group-sm mb-2">
+                                            <span class="input-group-text bg-light border-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                                            <input type="text" class="form-control border-0 bg-light" id="teacherSearch" placeholder="Search by name or employee ID..." autocomplete="off" role="combobox" aria-controls="teacherList" aria-expanded="false" aria-autocomplete="list">
+                                        </div>
+                                        <div id="teacherList" role="listbox" aria-label="Teachers">
+                                            {% for teacher in teachers %}
+                                                <button type="button" class="dropdown-item rounded-2" role="option" data-id="{{ teacher.staff_id }}" data-name="{{ teacher.first_name }} {{ teacher.last_name or '' }}" data-search="{{ teacher.first_name }} {{ teacher.last_name or '' }} {{ teacher.employee_id }}">
+                                                    {{ teacher.first_name }} {{ teacher.last_name or '' }} ({{ teacher.employee_id }})
+                                                </button>
+                                            {% endfor %}
+                                        </div>
+                                        <div id="teacherEmpty" class="text-muted small text-center py-2 d-none">No matching teacher found</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    {% if selected_staff_id %}
+                    <div class="col-md-4 text-md-end">
+                        <a href="{{ url_for('admin_timetable_teacher_edit', staff_id=selected_staff_id) }}" 
+                           class="btn btn-blue-primary px-4 py-2 fw-semibold">
+                            <i class="fa-solid fa-pen-to-square me-2"></i> Edit Timetable
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if selected_staff_id %}
+                    <h5 class="fw-bold text-dark mb-4">
+                        Teaching Schedule for {{ selected_teacher_name }}
+                    </h5>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover align-middle text-center mb-0" style="min-width: 800px;">
+                            <thead class="table-light text-muted fw-bold small text-uppercase">
+                                <tr>
+                                    <th style="width: 120px;" class="py-3">Day / Period</th>
+                                    {% for period in periods %}
+                                        {% if period.type == 'period' %}
+                                            <th class="py-3">
+                                                <div>Period {{ period.num }}</div>
+                                            </th>
+                                        {% elif period.type == 'break' %}
+                                            <th class="py-3" style="background:#f0f0f0;">
+                                                <div>{{ period.label }}</div>
+                                            </th>
+                                        {% elif period.type == 'lunch' %}
+                                            <th class="py-3" style="background:#e0e0e0;">
+                                                <div>{{ period.label }}</div>
+                                            </th>
+                                        {% endif %}
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] %}
+                                    <tr>
+                                        <td class="fw-bold text-dark bg-light">{{ day }}</td>
+                                        {% for period in periods %}
+                                            {% if period.type == 'period' %}
+                                                <td class="p-3 align-top" style="height: 100px; width: 11%;">
+                                                    {% set cells = teacher_grid[day][period.num] %}
+                                                    {% if cells %}
+                                                        {% for cell in cells %}
+                                                            <div class="bg-blue-light border border-primary-subtle rounded-3 p-2 mb-1 shadow-sm">
+                                                                <div class="fw-bold text-blue-primary small">{{ cell.subject }}</div>
+                                                                <div class="text-dark small" style="font-size: 0.75rem; font-weight: 500;">
+                                                                    Class {{ cell.class_name }} - {{ cell.section_name }}
+                                                                </div>
+                                                            </div>
+                                                        {% endfor %}
+                                                    {% else %}
+                                                        <span class="text-muted text-opacity-25" style="font-size: 0.75rem;">Free</span>
+                                                    {% endif %}
+                                                </td>
+                                            {% elif period.type == 'break' %}
+                                                <td class="p-3 align-top" style="background:#f0f0f0; height: 100px; text-align:center; vertical-align:middle;">
+                                                    <div>{{ period.label }}</div>
+                                                </td>
+                                            {% elif period.type == 'lunch' %}
+                                                <td class="p-3 align-top" style="background:#e0e0e0; height: 100px; text-align:center; vertical-align:middle;">
+                                                    <div>{{ period.label }}</div>
+                                                </td>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="fa-solid fa-user-tie fa-4x mb-3 text-muted opacity-50"></i>
+                        <h5>No Teacher Selected</h5>
+                        <p class="small text-muted mb-0">Please select a teacher from the dropdown above to inspect their aggregated workload and scheduled periods.</p>
+                    </div>
+                {% endif %}
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    // Keep the active tab after reload
+    document.addEventListener("DOMContentLoaded", function() {
+        var triggerTabList = [].slice.call(document.querySelectorAll('#timetableTabs button'))
+        triggerTabList.forEach(function (triggerEl) {
+            var tabTrigger = new bootstrap.Tab(triggerEl)
+            triggerEl.addEventListener('click', function (event) {
+                event.preventDefault()
+                tabTrigger.show()
+                // Update URL parameter
+                const url = new URL(window.location);
+                const tab = triggerEl.id.replace('-tab', '');
+                url.searchParams.set('tab', tab);
+                // Clear filters when switching tabs
+                if (tab === 'student') {
+                    url.searchParams.delete('staff_id');
+                } else {
+                    url.searchParams.delete('class_section_id');
+                }
+                window.history.pushState({}, '', url);
+            })
+        })
+
+        // Searchable Class & Section dropdown with keyboard navigation
+        const csForm = document.getElementById('student-filter-form');
+        const csSearch = document.getElementById('classSectionSearch');
+        const csList = document.getElementById('classSectionList');
+        const csEmpty = document.getElementById('classSectionEmpty');
+        const csLabel = document.getElementById('classSectionLabel');
+        const csHidden = document.getElementById('classSectionId');
+        const csItems = Array.from(csList.querySelectorAll('.dropdown-item'));
+        let csActiveIndex = -1;
+
+        function getVisibleItems() {
+            return csItems.filter(function (item) {
+                return !item.classList.contains('d-none');
+            });
+        }
+
+        function csFilter() {
+            const query = csSearch.value.trim().toLowerCase();
+            let visible = 0;
+            csItems.forEach(function (item) {
+                const haystack = item.getAttribute('data-search').toLowerCase();
+                const match = haystack.indexOf(query) !== -1;
+                item.classList.toggle('d-none', !match);
+                if (match) visible++;
+            });
+            csEmpty.classList.toggle('d-none', visible !== 0);
+            csActiveIndex = -1;
+            clearActive();
+        }
+
+        function clearActive() {
+            csItems.forEach(function (item) {
+                item.classList.remove('active', 'bg-blue-light');
+            });
+        }
+
+        function setActive(index) {
+            const visible = getVisibleItems();
+            if (visible.length === 0) return;
+            if (index < 0) index = 0;
+            if (index >= visible.length) index = visible.length - 1;
+            clearActive();
+            visible[index].classList.add('active', 'bg-blue-light');
+            visible[index].scrollIntoView({ block: 'nearest' });
+            csActiveIndex = index;
+        }
+
+        function csSelect(item) {
+            csHidden.value = item.getAttribute('data-id');
+            csLabel.textContent = item.getAttribute('data-name');
+            csSearch.value = '';
+            csFilter();
+            // Auto-submit to refresh the timetable for the chosen class/section
+            csForm.requestSubmit();
+        }
+
+        csSearch.addEventListener('input', csFilter);
+
+        csItems.forEach(function (item) {
+            item.addEventListener('click', function () {
+                csSelect(item);
+            });
+        });
+
+        // Keyboard navigation inside the search box
+        csSearch.addEventListener('keydown', function (e) {
+            const visible = getVisibleItems();
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                setActive(csActiveIndex + 1);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                setActive(csActiveIndex - 1);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (csActiveIndex >= 0 && visible[csActiveIndex]) {
+                    csSelect(visible[csActiveIndex]);
+                } else if (visible.length > 0) {
+                    csSelect(visible[0]);
+                }
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                csSearch.blur();
+                bootstrap.Dropdown.getInstance(document.getElementById('classSectionToggle')).hide();
+            }
+        });
+
+        // Clear active highlight when the dropdown is hidden
+        document.getElementById('classSectionDropdown').addEventListener('hidden.bs.dropdown', function () {
+            clearActive();
+            csActiveIndex = -1;
+        });
+
+        // Searchable Teacher dropdown with keyboard navigation
+        const tForm = document.getElementById('teacher-filter-form');
+        const tSearch = document.getElementById('teacherSearch');
+        const tList = document.getElementById('teacherList');
+        const tEmpty = document.getElementById('teacherEmpty');
+        const tLabel = document.getElementById('teacherLabel');
+        const tHidden = document.getElementById('teacherId');
+        const tItems = Array.from(tList.querySelectorAll('.dropdown-item'));
+        let tActiveIndex = -1;
+
+        function tGetVisible() {
+            return tItems.filter(function (item) {
+                return !item.classList.contains('d-none');
+            });
+        }
+
+        function tFilter() {
+            const query = tSearch.value.trim().toLowerCase();
+            let visible = 0;
+            tItems.forEach(function (item) {
+                const haystack = item.getAttribute('data-search').toLowerCase();
+                const match = haystack.indexOf(query) !== -1;
+                item.classList.toggle('d-none', !match);
+                if (match) visible++;
+            });
+            tEmpty.classList.toggle('d-none', visible !== 0);
+            tActiveIndex = -1;
+            tClearActive();
+        }
+
+        function tClearActive() {
+            tItems.forEach(function (item) {
+                item.classList.remove('active', 'bg-blue-light');
+            });
+        }
+
+        function tSetActive(index) {
+            const visible = tGetVisible();
+            if (visible.length === 0) return;
+            if (index < 0) index = 0;
+            if (index >= visible.length) index = visible.length - 1;
+            tClearActive();
+            visible[index].classList.add('active', 'bg-blue-light');
+            visible[index].scrollIntoView({ block: 'nearest' });
+            tActiveIndex = index;
+        }
+
+        function tSelect(item) {
+            tHidden.value = item.getAttribute('data-id');
+            tLabel.textContent = item.getAttribute('data-name');
+            tSearch.value = '';
+            tFilter();
+            tForm.requestSubmit();
+        }
+
+        tSearch.addEventListener('input', tFilter);
+
+        tItems.forEach(function (item) {
+            item.addEventListener('click', function () {
+                tSelect(item);
+            });
+        });
+
+        tSearch.addEventListener('keydown', function (e) {
+            const visible = tGetVisible();
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                tSetActive(tActiveIndex + 1);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                tSetActive(tActiveIndex - 1);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (tActiveIndex >= 0 && visible[tActiveIndex]) {
+                    tSelect(visible[tActiveIndex]);
+                } else if (visible.length > 0) {
+                    tSelect(visible[0]);
+                }
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                tSearch.blur();
+                bootstrap.Dropdown.getInstance(document.getElementById('teacherToggle')).hide();
+            }
+        });
+
+        document.getElementById('teacherDropdown').addEventListener('hidden.bs.dropdown', function () {
+            tClearActive();
+            tActiveIndex = -1;
+        });
+    });
+</script>
+{% endblock %}

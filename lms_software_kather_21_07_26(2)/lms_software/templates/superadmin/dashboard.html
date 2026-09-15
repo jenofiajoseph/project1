@@ -1,0 +1,238 @@
+{% extends "superadmin/base.html" %}
+
+{% block title %}Dashboard - Super Admin{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Global Settings Panel -->
+    <div class="col-12 col-md-8">
+        <div class="card border-0 shadow-sm rounded-4 bg-white mb-4">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="fw-bold text-dark mb-0">
+                    <i class="fa-solid fa-gears me-2 text-primary"></i> Global System Modules
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center p-3 border rounded-3 {% if is_entrance_enabled %}bg-success bg-opacity-10 border-success{% else %}bg-light{% endif %} mb-3">
+                    <div>
+                        <h6 class="fw-bold mb-1 {% if is_entrance_enabled %}text-success{% else %}text-dark{% endif %}">Entrance Exam Module</h6>
+                        <p class="text-muted small mb-0">When enabled, Staff members can create and assign entrance exams to students.</p>
+                    </div>
+                    <div>
+                        <form method="POST" action="{{ url_for('superadmin_toggle_exam') }}">
+                            {% if is_entrance_enabled %}
+                                <button type="submit" class="btn btn-danger fw-semibold px-4">Disable Module</button>
+                            {% else %}
+                                <button type="submit" class="btn btn-success fw-semibold px-4">Enable Module</button>
+                            {% endif %}
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Study Materials Global Toggle -->
+                <div class="d-flex justify-content-between align-items-center p-3 border rounded-3 {% if is_study_materials_enabled %}bg-success bg-opacity-10 border-success{% else %}bg-light{% endif %} mb-3">
+                    <div>
+                        <h6 class="fw-bold mb-1 {% if is_study_materials_enabled %}text-success{% else %}text-dark{% endif %}">Study Materials Portal</h6>
+                        <p class="text-muted small mb-0">Master toggle to show or hide the Study Materials section for Staff and Students.</p>
+                    </div>
+                    <div>
+                        <form method="POST" action="{{ url_for('superadmin_toggle_study_materials') }}">
+                            {% if is_study_materials_enabled %}
+                                <button type="submit" class="btn btn-danger fw-semibold px-4">Disable Portal</button>
+                            {% else %}
+                                <button type="submit" class="btn btn-success fw-semibold px-4">Enable Portal</button>
+                            {% endif %}
+                        </form>
+                    </div>
+                </div>
+
+                {% if is_study_materials_enabled %}
+                <div class="card border-0 bg-light rounded-3 p-3 mb-3">
+                    <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-sliders me-2 text-primary"></i> Granular Material Permissions</h6>
+                    <div class="row g-3">
+
+                        
+                        <!-- Video Toggle -->
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between align-items-center p-2 border rounded bg-white">
+                                <div>
+                                    <span class="fw-semibold small"><i class="fa-solid fa-file-video text-success me-2"></i>Videos (< 15MB)</span>
+                                </div>
+                                <form method="POST" action="{{ url_for('superadmin_toggle_video') }}">
+                                    {% if is_video_enabled %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Disable</button>
+                                    {% else %}
+                                        <button type="submit" class="btn btn-sm btn-outline-success">Enable</button>
+                                    {% endif %}
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Documents Toggle -->
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between align-items-center p-2 border rounded bg-white">
+                                <div>
+                                    <span class="fw-semibold small"><i class="fa-solid fa-file-word text-primary me-2"></i>Documents (PDF/DOCX/TXT)</span>
+                                </div>
+                                <form method="POST" action="{{ url_for('superadmin_toggle_notes') }}">
+                                    {% if is_notes_enabled %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Disable</button>
+                                    {% else %}
+                                        <button type="submit" class="btn btn-sm btn-outline-success">Enable</button>
+                                    {% endif %}
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Chat Toggle -->
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between align-items-center p-2 border rounded bg-white">
+                                <div>
+                                    <span class="fw-semibold small"><i class="fa-solid fa-comments text-warning me-2"></i>Chat Feature</span>
+                                </div>
+                                <form method="POST" action="{{ url_for('superadmin_toggle_chat') }}">
+                                    {% if is_chat_enabled %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Disable</button>
+                                    {% else %}
+                                        <button type="submit" class="btn btn-sm btn-outline-success">Enable</button>
+                                    {% endif %}
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Communication Module Global Toggle -->
+        <div class="card border-0 shadow-sm rounded-4 bg-white mb-4">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="fw-bold text-dark mb-0">
+                    <i class="fa-solid fa-bullhorn me-2 text-primary"></i> Communication Module
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center p-3 border rounded-3 {% if is_communication_enabled %}bg-success bg-opacity-10 border-success{% else %}bg-light{% endif %} mb-3">
+                    <div>
+                        <h6 class="fw-bold mb-1 {% if is_communication_enabled %}text-success{% else %}text-dark{% endif %}">Global Communication Module</h6>
+                        <p class="text-muted small mb-0">Master toggle to show or hide the Communication section for Staff and Students.</p>
+                    </div>
+                    <div>
+                        <form method="POST" action="{{ url_for('superadmin_toggle_communication') }}">
+                            {% if is_communication_enabled %}
+                                <button type="submit" class="btn btn-danger fw-semibold px-4">Disable Module</button>
+                            {% else %}
+                                <button type="submit" class="btn btn-success fw-semibold px-4">Enable Module</button>
+                            {% endif %}
+                        </form>
+                    </div>
+                </div>
+
+                {% if is_communication_enabled %}
+                <div class="card border-0 bg-light rounded-3 p-3">
+                    <h6 class="fw-bold text-dark mb-3"><i class="fa-solid fa-sliders me-2 text-primary"></i> Active Channels (Sub-Columns)</h6>
+                    <div class="row g-3">
+                        <!-- WhatsApp Toggle -->
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between align-items-center p-2 border rounded bg-white">
+                                <div>
+                                    <span class="fw-semibold small"><i class="fa-brands fa-whatsapp text-success me-2"></i>WhatsApp Integration</span>
+                                </div>
+                                <form method="POST" action="{{ url_for('superadmin_toggle_communication_whatsapp') }}">
+                                    {% if is_communication_whatsapp_enabled %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Disable</button>
+                                    {% else %}
+                                        <button type="submit" class="btn btn-sm btn-outline-success">Enable</button>
+                                    {% endif %}
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Email Toggle -->
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between align-items-center p-2 border rounded bg-white">
+                                <div>
+                                    <span class="fw-semibold small"><i class="fa-solid fa-envelope text-primary me-2"></i>Email Notifications</span>
+                                </div>
+                                <form method="POST" action="{{ url_for('superadmin_toggle_communication_email') }}">
+                                    {% if is_communication_email_enabled %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Disable</button>
+                                    {% else %}
+                                        <button type="submit" class="btn btn-sm btn-outline-success">Enable</button>
+                                    {% endif %}
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Circular Toggle -->
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between align-items-center p-2 border rounded bg-white">
+                                <div>
+                                    <span class="fw-semibold small"><i class="fa-solid fa-file-lines text-info me-2"></i>Official Circulars</span>
+                                </div>
+                                <form method="POST" action="{{ url_for('superadmin_toggle_communication_circular') }}">
+                                    {% if is_communication_circular_enabled %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Disable</button>
+                                    {% else %}
+                                        <button type="submit" class="btn btn-sm btn-outline-success">Enable</button>
+                                    {% endif %}
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Push Notification Toggle -->
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between align-items-center p-2 border rounded bg-white">
+                                <div>
+                                    <span class="fw-semibold small"><i class="fa-solid fa-bell text-warning me-2"></i>Push Notifications</span>
+                                </div>
+                                <form method="POST" action="{{ url_for('superadmin_toggle_communication_push') }}">
+                                    {% if is_communication_push_enabled %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Disable</button>
+                                    {% else %}
+                                        <button type="submit" class="btn btn-sm btn-outline-success">Enable</button>
+                                    {% endif %}
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Announcement Toggle -->
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between align-items-center p-2 border rounded bg-white">
+                                <div>
+                                    <span class="fw-semibold small"><i class="fa-solid fa-bullhorn text-danger me-2"></i>Announcements</span>
+                                </div>
+                                <form method="POST" action="{{ url_for('superadmin_toggle_communication_announcement') }}">
+                                    {% if is_communication_announcement_enabled %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Disable</button>
+                                    {% else %}
+                                        <button type="submit" class="btn btn-sm btn-outline-success">Enable</button>
+                                    {% endif %}
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Notice Board Toggle -->
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between align-items-center p-2 border rounded bg-white">
+                                <div>
+                                    <span class="fw-semibold small"><i class="fa-solid fa-clipboard-list text-secondary me-2"></i>Notice Board</span>
+                                </div>
+                                <form method="POST" action="{{ url_for('superadmin_toggle_communication_notice_board') }}">
+                                    {% if is_communication_notice_board_enabled %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Disable</button>
+                                    {% else %}
+                                        <button type="submit" class="btn btn-sm btn-outline-success">Enable</button>
+                                    {% endif %}
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
